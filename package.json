@@ -1,0 +1,26 @@
+{
+  "name": "opsdesk",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.24.0",
+  "engines": { "node": ">=20.11" },
+  "scripts": {
+    "dev": "concurrently -k -n api,web -c blue,green \"pnpm --filter @opsdesk/api dev\" \"pnpm --filter @opsdesk/web dev\"",
+    "dev:api": "pnpm --filter @opsdesk/api dev",
+    "dev:web": "pnpm --filter @opsdesk/web dev",
+    "worker": "pnpm --filter @opsdesk/api worker",
+    "db:generate": "pnpm --filter @opsdesk/api db:generate",
+    "db:migrate": "pnpm --filter @opsdesk/api db:migrate",
+    "db:seed": "pnpm --filter @opsdesk/api db:seed",
+    "test": "pnpm --filter @opsdesk/api test && pnpm --filter @opsdesk/web test",
+    "build": "pnpm --filter @opsdesk/api build && pnpm --filter @opsdesk/web build",
+    "lint": "pnpm --filter @opsdesk/api lint && pnpm --filter @opsdesk/web lint"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "typescript": "^5.9.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["@prisma/client", "@prisma/engines", "esbuild", "prisma"]
+  }
+}
