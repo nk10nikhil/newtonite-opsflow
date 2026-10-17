@@ -1,0 +1,184 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TeamRole {
+  admin
+  member
+  viewer
+}
+
+enum WorkItemStatus {
+  open
+  in_progress
+  blocked
+  resolved
+  closed
+}
+
+enum WorkItemPriority {
+  low
+  normal
+  high
+  urgent
+}
+
+enum OutboxStatus {
+  pending
+  processing
+  done
+  failed
+}
+
+model User {
+  id           String             @id @default(cuid())
+  email        String             @unique
+  name         String
+  passwordHash String             @map("password_hash")
+  createdAt    DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  memberships  TeamMembership[]
+  sessions     Session[]
+  createdItems WorkItem[]         @relation("created_items")
+  assignedItems WorkItem[]        @relation("assigned_items")
+  comments     WorkItemComment[]
+  events       WorkItemEvent[]
+
+  @@map("users")
+}
+
+model Team {
+  id          String           @id @default(cuid())
+  name        String
+  slug        String           @unique
+  memberships TeamMembership[]
+  workItems   WorkItem[]
+
+  @@map("teams")
+}
+
+model TeamMembership {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  teamId    String   @map("team_id")
+  role      TeamRole
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, teamId])
+  @@index([teamId, role])
+  @@map("team_memberships")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique @map("token_hash")
+  userId    String   @map("user_id")
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model WorkItem {
+  id          String           @id @default(cuid())
+  teamId      String           @map("team_id")
+  title       String
+  description String           @default("")
+  type        String
+  status      WorkItemStatus   @default(open)
+  priority    WorkItemPriority @default(normal)
+  assigneeId  String?          @map("assignee_id")
+  createdBy   String           @map("created_by")
+  createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+  version     Int              @default(1)
+  team        Team             @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  creator     User             @relation("created_items", fields: [createdBy], references: [id], onDelete: Restrict)
+  assignee    User?            @relation("assigned_items", fields: [assigneeId], references: [id], onDelete: SetNull)
+  comments    WorkItemComment[]
+  events      WorkItemEvent[]
+
+  @@index([teamId, status])
+  @@index([assigneeId])
+  @@index([priority])
+  @@index([updatedAt(sort: Desc), id(sort: Desc)])
+  @@index([createdAt(sort: Desc), id(sort: Desc)])
+  @@map("work_items")
+}
+
+model WorkItemComment {
+  id         String   @id @default(cuid())
+  workItemId String   @map("work_item_id")
+  authorId   String   @map("author_id")
+  body       String
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  workItem   WorkItem @relation(fields: [workItemId], references: [id], onDelete: Cascade)
+  author     User     @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([workItemId, createdAt(sort: Desc), id(sort: Desc)])
+  @@map("work_item_comments")
+}
+
+model WorkItemEvent {
+  id         String   @id @default(cuid())
+  workItemId String   @map("work_item_id")
+  actorId    String?  @map("actor_id")
+  type       String
+  payload    Json
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  workItem   WorkItem @relation(fields: [workItemId], references: [id], onDelete: Restrict)
+  actor      User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([workItemId, createdAt(sort: Desc), id(sort: Desc)])
+  @@map("work_item_events")
+}
+
+model IdempotencyKey {
+  id             String   @id @default(cuid())
+  key            String
+  userId         String   @map("user_id")
+  endpoint       String
+  requestHash    String   @map("request_hash")
+  responseStatus Int      @map("response_status")
+  responseBody   Json     @map("response_body")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@unique([userId, key, endpoint])
+  @@index([createdAt])
+  @@map("idempotency_keys")
+}
+
+model OutboxEvent {
+  id            String      @id @default(cuid())
+  type          String
+  payload       Json
+  status        OutboxStatus @default(pending)
+  attempts      Int         @default(0)
+  nextAttemptAt DateTime    @default(now()) @map("next_attempt_at") @db.Timestamptz(3)
+  lastError     String?     @map("last_error")
+  lockedAt      DateTime?   @map("locked_at") @db.Timestamptz(3)
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  processedAt   DateTime?   @map("processed_at") @db.Timestamptz(3)
+  notification  Notification?
+
+  @@index([status, nextAttemptAt])
+  @@map("outbox_events")
+}
+
+model Notification {
+  id            String      @id @default(cuid())
+  outboxEventId String      @unique @map("outbox_event_id")
+  type          String
+  payload       Json
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  outboxEvent   OutboxEvent @relation(fields: [outboxEventId], references: [id], onDelete: Restrict)
+
+  @@map("notifications")
+}
