@@ -14,10 +14,14 @@ const listQuerySchema = z.object({
   status: statusSchema.optional(),
   priority: prioritySchema.optional(),
   assigneeId: z.string().min(1).optional(),
-  unassigned: z.coerce.boolean().optional(),
+  unassigned: z.enum(['true', 'false']).transform((value) => value === 'true').optional(),
   q: z.string().trim().max(200).optional(),
   cursor: z.string().optional(),
   limit: z.coerce.number().int().min(1).max(100).default(25),
+}).superRefine((query, context) => {
+  if (query.unassigned && query.assigneeId) {
+    context.addIssue({ code: 'custom', path: ['assigneeId'], message: 'Choose either assigneeId or unassigned' });
+  }
 });
 
 function parse<T>(schema: z.ZodType<T>, value: unknown): T {
@@ -26,7 +30,7 @@ function parse<T>(schema: z.ZodType<T>, value: unknown): T {
   return result.data;
 }
 
-function idempotencyKey(reply: FastifyReply, value: string | string[] | undefined) {
+function idempotencyKey(value: string | string[] | undefined) {
   return requireIdempotencyKey(typeof value === 'string' ? value : undefined);
 }
 
@@ -61,7 +65,7 @@ export function registerWorkItemRoutes(app: FastifyInstance, db: PrismaClient) {
     const body = parse(createWorkItemSchema, request.body);
     const role = await getTeamRole(db, actor.id, body.teamId);
     requireAllowed(canCreate(role), 'Your team role cannot create work items');
-    const key = idempotencyKey(reply, request.headers['idempotency-key']);
+    const key = idempotencyKey(request.headers['idempotency-key']);
     const result = await withIdempotency(db, {
       key,
       userId: actor.id,
@@ -127,7 +131,8 @@ export function registerWorkItemRoutes(app: FastifyInstance, db: PrismaClient) {
   app.get<{ Params: { id: string } }>('/api/work-items/:id', async (request) => {
     const actor = requireUser(request);
     const { item } = await getItemAccess(db, actor.id, request.params.id);
-    const [comments, events] = await Promise.all([
+    const eventSnapshot = new Date(Date.now() - 1000);
+    const [comments, foundEvents] = await Promise.all([
       db.workItemComment.findMany({
         where: { workItemId: item.id },
         orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
@@ -135,13 +140,19 @@ export function registerWorkItemRoutes(app: FastifyInstance, db: PrismaClient) {
         include: { author: { select: { id: true, name: true } } },
       }),
       db.workItemEvent.findMany({
-        where: { workItemId: item.id },
+        where: { workItemId: item.id, createdAt: { lte: eventSnapshot } },
         orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-        take: 30,
+        take: 31,
         include: { actor: { select: { id: true, name: true } } },
       }),
     ]);
-    return { item, comments: comments.reverse(), events: events.reverse() };
+    const hasMoreEvents = foundEvents.length > 30;
+    const events = hasMoreEvents ? foundEvents.slice(0, 30) : foundEvents;
+    const oldestEvent = events.at(-1);
+    const nextEventCursor = hasMoreEvents && oldestEvent
+      ? encodeCursor({ snapshot: eventSnapshot.toISOString(), at: oldestEvent.createdAt.toISOString(), id: oldestEvent.id })
+      : null;
+    return { item, comments: comments.reverse(), events: events.reverse(), nextEventCursor };
   });
 
   app.get<{ Params: { id: string } }>('/api/work-items/:id/events', async (request) => {
@@ -178,7 +189,7 @@ export function registerWorkItemRoutes(app: FastifyInstance, db: PrismaClient) {
     const body = parse(claimSchema, request.body);
     const { role } = await getItemAccess(db, actor.id, request.params.id);
     requireAllowed(canClaim(role), 'Your team role cannot claim work items');
-    const key = idempotencyKey(reply, request.headers['idempotency-key']);
+    const key = idempotencyKey(request.headers['idempotency-key']);
     const result = await withIdempotency(db, {
       key,
       userId: actor.id,
@@ -193,7 +204,7 @@ export function registerWorkItemRoutes(app: FastifyInstance, db: PrismaClient) {
     const body = parse(assignSchema, request.body);
     const { role } = await getItemAccess(db, actor.id, request.params.id);
     requireAllowed(canAssign(role), 'Only a team admin can assign work items');
-    const key = idempotencyKey(reply, request.headers['idempotency-key']);
+    const key = idempotencyKey(request.headers['idempotency-key']);
     const result = await withIdempotency(db, {
       key,
       userId: actor.id,
@@ -214,7 +225,7 @@ export function registerWorkItemRoutes(app: FastifyInstance, db: PrismaClient) {
     const body = parse(commentSchema, request.body);
     const { role } = await getItemAccess(db, actor.id, request.params.id);
     requireAllowed(canComment(role), 'Your team role cannot comment on work items');
-    const key = idempotencyKey(reply, request.headers['idempotency-key']);
+    const key = idempotencyKey(request.headers['idempotency-key']);
     const result = await withIdempotency(db, {
       key,
       userId: actor.id,

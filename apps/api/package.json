@@ -10,8 +10,8 @@
     "test": "vitest run",
     "lint": "tsc -p tsconfig.json --noEmit",
     "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate deploy",
-    "db:migrate:dev": "prisma migrate dev",
+    "db:migrate": "dotenv -e ../../.env -- prisma migrate deploy",
+    "db:migrate:dev": "dotenv -e ../../.env -- prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
@@ -27,6 +27,7 @@
   "devDependencies": {
     "@types/node": "^24.10.0",
     "@types/supertest": "^6.0.3",
+    "dotenv-cli": "^10.0.0",
     "prisma": "^6.19.0",
     "supertest": "^7.1.4",
     "tsx": "^4.20.6",

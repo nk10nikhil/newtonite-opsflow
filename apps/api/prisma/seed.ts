@@ -1,7 +1,9 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
+import { resolve } from 'node:path';
 import { PrismaClient, WorkItemPriority, WorkItemStatus } from '@prisma/client';
 import { hashPassword } from '../src/auth/crypto.js';
 
+dotenv.config({ path: resolve(process.cwd(), '../../.env') });
 const prisma = new PrismaClient();
 
 const teams = [
@@ -74,9 +76,7 @@ async function main() {
     const creator = teamMembers[index % teamMembers.length]!;
     const status = statuses[index % statuses.length]!;
     const priority = priorities[Math.floor(index / 2) % priorities.length]!;
-    const assignee = status === 'open' && index % 3 === 0
-      ? null
-      : teamMembers[(index + 1) % teamMembers.length]!;
+    const assignee = status === 'open' ? null : teamMembers[(index + 1) % teamMembers.length]!;
     const createdAt = new Date(Date.now() - (index * 37 + 2) * 60 * 60 * 1000);
     const id = `seed-item-${String(ordinal).padStart(3, '0')}`;
     const title = `${workTitles[index % workTitles.length]} #${ordinal}`;

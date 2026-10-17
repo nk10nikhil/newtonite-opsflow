@@ -207,6 +207,9 @@ export async function transitionWorkItem(
 ) {
   return db.$transaction(async (tx) => {
     const { item, role } = await getItemAccess(tx, actor.id, workItemId);
+    if (item.status === 'open' && input.toStatus === 'in_progress') {
+      throw new AppError(422, 'INVALID_TRANSITION', 'Claim or assign an open item to start work.', { from: item.status, to: input.toStatus });
+    }
     if (!isLegalTransition(item.status, input.toStatus)) {
       throw new AppError(422, 'INVALID_TRANSITION', `Cannot transition from ${item.status} to ${input.toStatus}.`, { from: item.status, to: input.toStatus });
     }

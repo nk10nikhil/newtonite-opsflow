@@ -1,4 +1,5 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
+import { resolve } from 'node:path';
 import Fastify from 'fastify';
 import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
@@ -8,6 +9,8 @@ import { authenticateRequest, registerAuth } from './auth/session.js';
 import { registerTeamRoutes } from './modules/teams/routes.js';
 import { registerWorkItemRoutes } from './modules/work-items/routes.js';
 import { errorHandler } from './lib/errors.js';
+
+dotenv.config({ path: resolve(process.cwd(), '../../.env') });
 
 export type AppConfig = {
   webOrigin: string;
@@ -30,9 +33,11 @@ export function buildApp(options: { db?: PrismaClient; config?: Partial<AppConfi
   app.register(cookie);
   app.register(cors, { origin: config.webOrigin, credentials: true });
   app.setErrorHandler(errorHandler);
+  app.setNotFoundHandler((_request, reply) => reply.status(404).send({ error: { code: 'NOT_FOUND', message: 'Route not found' } }));
   app.addHook('preHandler', async (request) => {
-    if (!request.url.startsWith('/api/')) return;
-    if (request.url === '/api/auth/login' || request.url === '/api/auth/logout') return;
+    const path = request.url.split('?')[0];
+    if (!path?.startsWith('/api/')) return;
+    if (path === '/api/auth/login' || path === '/api/auth/logout') return;
     await authenticateRequest(request, db, config.sessionSecret);
   });
   app.get('/health', async () => ({ ok: true }));
