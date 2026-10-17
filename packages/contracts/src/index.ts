@@ -28,8 +28,11 @@ export const transitionSchema = z.object({
   toStatus: statusSchema,
 });
 
-export const commentSchema = z.object({ body: z.string().trim().min(1).max(5_000) });
-export const assignSchema = z.object({ assigneeId: z.string().min(1) });
+export const commentSchema = z.object({
+  body: z.string().trim().min(1).max(5_000),
+  expectedVersion: z.number().int().positive().optional(),
+});
+export const assignSchema = z.object({ assigneeId: z.string().min(1), expectedVersion: z.number().int().positive() });
 
 export type WorkItemStatus = z.infer<typeof statusSchema>;
 export type WorkItemPriority = z.infer<typeof prioritySchema>;
