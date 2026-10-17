@@ -237,3 +237,7 @@ CREATE TRIGGER work_item_events_no_update
 BEFORE UPDATE OR DELETE ON "work_item_events"
 FOR EACH ROW EXECUTE FUNCTION reject_work_item_event_mutation();
 
+CREATE TRIGGER work_item_events_no_truncate
+BEFORE TRUNCATE ON "work_item_events"
+FOR EACH STATEMENT EXECUTE FUNCTION reject_work_item_event_mutation();
+

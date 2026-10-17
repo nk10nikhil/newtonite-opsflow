@@ -19,6 +19,8 @@ export {
   updateWorkItemSchema,
 };
 
-export const claimSchema = z.object({ expectedVersion: z.number().int().positive().optional() }).default({});
+export const claimSchema = z
+  .object({ expectedVersion: z.number().int().positive().optional() })
+  .default({});
 export type CreateWorkItemInput = z.infer<typeof createWorkItemSchema>;
 export type UpdateWorkItemInput = z.infer<typeof updateWorkItemSchema>;

@@ -24,7 +24,9 @@ export function canClaim(role: TeamRole | null | undefined): boolean {
 }
 
 export function canEdit(access: WorkItemAccess): boolean {
-  return access.role === 'admin' || (access.role === 'member' && access.assigneeId === access.userId);
+  return (
+    access.role === 'admin' || (access.role === 'member' && access.assigneeId === access.userId)
+  );
 }
 
 export function canAssign(role: TeamRole): boolean {
@@ -32,17 +34,30 @@ export function canAssign(role: TeamRole): boolean {
 }
 
 export function canChangePriority(access: WorkItemAccess): boolean {
-  return access.role === 'admin' || (access.role === 'member' && access.assigneeId === access.userId);
+  return (
+    access.role === 'admin' || (access.role === 'member' && access.assigneeId === access.userId)
+  );
 }
 
-export function canTransition(access: WorkItemAccess, from: WorkItemStatus, to: WorkItemStatus): boolean {
+export function canTransition(
+  access: WorkItemAccess,
+  from: WorkItemStatus,
+  to: WorkItemStatus,
+): boolean {
   if (to === 'open' && from === 'closed') return access.role === 'admin';
   if (from === 'in_progress' && to === 'resolved') {
-    return access.role === 'admin' || (access.role === 'member' && access.assigneeId === access.userId);
+    return (
+      access.role === 'admin' || (access.role === 'member' && access.assigneeId === access.userId)
+    );
   }
-  return access.role === 'admin' || (access.role === 'member' && access.assigneeId === access.userId);
+  return (
+    access.role === 'admin' || (access.role === 'member' && access.assigneeId === access.userId)
+  );
 }
 
-export function requireAllowed(allowed: boolean, message = 'You do not have permission to perform this action'): void {
+export function requireAllowed(
+  allowed: boolean,
+  message = 'You do not have permission to perform this action',
+): void {
   if (!allowed) throw new AppError(403, 'FORBIDDEN', message);
 }

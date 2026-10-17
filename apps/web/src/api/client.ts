@@ -1,7 +1,15 @@
-import type { ApiError, WorkItemPriority, WorkItemStatus, WorkItemSummary } from '@opsdesk/contracts';
+import type {
+  ApiError,
+  WorkItemPriority,
+  WorkItemStatus,
+  WorkItemSummary,
+} from '@opsdesk/contracts';
 
 export type User = { id: string; name: string; email: string };
-export type Membership = { role: 'admin' | 'member' | 'viewer'; team: { id: string; name: string; slug: string } };
+export type Membership = {
+  role: 'admin' | 'member' | 'viewer';
+  team: { id: string; name: string; slug: string };
+};
 export type Me = User & { memberships: Membership[] };
 export type TeamMember = User & { role: 'admin' | 'member' | 'viewer' };
 export type WorkItem = Omit<WorkItemSummary, 'team' | 'assignee'> & {
@@ -57,15 +65,18 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
   return body as T;
 }
 
-export const login = (email: string, password: string) => apiFetch<{ user: User }>('/auth/login', {
-  method: 'POST',
-  body: JSON.stringify({ email, password }),
-});
+export const login = (email: string, password: string) =>
+  apiFetch<{ user: User }>('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+  });
 
 export const logout = () => apiFetch<{ ok: true }>('/auth/logout', { method: 'POST' });
 export const fetchMe = () => apiFetch<Me>('/me');
-export const fetchTeams = () => apiFetch<{ teams: Array<{ id: string; name: string; slug: string; role: string }> }>('/teams');
-export const fetchTeamMembers = (teamId: string) => apiFetch<{ members: TeamMember[] }>(`/teams/${encodeURIComponent(teamId)}/members`);
+export const fetchTeams = () =>
+  apiFetch<{ teams: Array<{ id: string; name: string; slug: string; role: string }> }>('/teams');
+export const fetchTeamMembers = (teamId: string) =>
+  apiFetch<{ members: TeamMember[] }>(`/teams/${encodeURIComponent(teamId)}/members`);
 
 export type WorkItemFilters = {
   teamId?: string;
@@ -84,20 +95,33 @@ export async function fetchWorkItems(filters: WorkItemFilters) {
     if (value !== undefined && value !== '' && value !== false) params.set(key, String(value));
   }
   const query = params.toString();
-  return apiFetch<{ items: WorkItem[]; nextCursor: string | null }>(`/work-items${query ? `?${query}` : ''}`);
+  return apiFetch<{ items: WorkItem[]; nextCursor: string | null }>(
+    `/work-items${query ? `?${query}` : ''}`,
+  );
 }
 
-export const fetchWorkItem = (id: string) => apiFetch<{ item: WorkItem; comments: Comment[]; events: WorkItemEvent[]; nextEventCursor: string | null }>(`/work-items/${encodeURIComponent(id)}`);
+export const fetchWorkItem = (id: string) =>
+  apiFetch<{
+    item: WorkItem;
+    comments: Comment[];
+    events: WorkItemEvent[];
+    nextEventCursor: string | null;
+  }>(`/work-items/${encodeURIComponent(id)}`);
 
 export const fetchWorkItemEvents = (id: string, cursor?: string) => {
   const query = new URLSearchParams({ limit: '30', ...(cursor ? { cursor } : {}) });
-  return apiFetch<{ events: WorkItemEvent[]; nextCursor: string | null }>(`/work-items/${encodeURIComponent(id)}/events?${query}`);
+  return apiFetch<{ events: WorkItemEvent[]; nextCursor: string | null }>(
+    `/work-items/${encodeURIComponent(id)}/events?${query}`,
+  );
 };
 
 function canonical(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`;
   if (value && typeof value === 'object') {
-    return `{${Object.entries(value).sort(([left], [right]) => left.localeCompare(right)).map(([key, child]) => `${JSON.stringify(key)}:${canonical(child)}`).join(',')}}`;
+    return `{${Object.entries(value)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, child]) => `${JSON.stringify(key)}:${canonical(child)}`)
+      .join(',')}}`;
   }
   return JSON.stringify(value) ?? 'null';
 }

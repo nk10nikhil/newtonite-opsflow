@@ -13,7 +13,11 @@ const accounts = [
   { email: 'harper@opsdesk.local', label: 'Harper Brooks · Team admin' },
 ];
 
-export function Login({ onLogin }: { onLogin: (email: string, password: string) => Promise<void> }) {
+export function Login({
+  onLogin,
+}: {
+  onLogin: (email: string, password: string) => Promise<void>;
+}) {
   const [email, setEmail] = useState('alex@opsdesk.local');
   const [password, setPassword] = useState('opsdesk-demo');
   const [error, setError] = useState('');
@@ -26,7 +30,11 @@ export function Login({ onLogin }: { onLogin: (email: string, password: string) 
     try {
       await onLogin(email, password);
     } catch (cause) {
-      setError(cause instanceof ApiRequestError ? cause.message : 'Sign in could not be completed. Please retry.');
+      setError(
+        cause instanceof ApiRequestError
+          ? cause.message
+          : 'Sign in could not be completed. Please retry.',
+      );
     } finally {
       setBusy(false);
     }
@@ -35,33 +43,90 @@ export function Login({ onLogin }: { onLogin: (email: string, password: string) 
   return (
     <main className="login-page">
       <section className="login-panel">
-        <a className="brand login-brand" href="/" aria-label="OpsDesk home"><span className="brand-mark">O</span><span>OpsDesk</span></a>
+        <a className="brand login-brand" href="/" aria-label="OpsDesk home">
+          <span className="brand-mark">O</span>
+          <span>OpsDesk</span>
+        </a>
         <p className="eyebrow">INTERNAL OPERATIONS</p>
         <h1>Work with the full picture.</h1>
-        <p className="login-copy">Bring requests, ownership, decisions, and next steps into one shared workspace.</p>
+        <p className="login-copy">
+          Bring requests, ownership, decisions, and next steps into one shared workspace.
+        </p>
         <form className="form-stack login-form" onSubmit={submit}>
-          <label><span>Email</span><input autoComplete="username" type="email" required value={email} onChange={(event) => setEmail(event.target.value)} /></label>
-          <label><span>Password</span><input autoComplete="current-password" type="password" required value={password} onChange={(event) => setPassword(event.target.value)} /></label>
-          {error && <p role="alert" className="form-error">{error}</p>}
-          <button className="button button-primary button-wide" type="submit" disabled={busy}>{busy ? 'Signing in…' : 'Sign in'}</button>
+          <label>
+            <span>Email</span>
+            <input
+              autoComplete="username"
+              type="email"
+              required
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+            />
+          </label>
+          <label>
+            <span>Password</span>
+            <input
+              autoComplete="current-password"
+              type="password"
+              required
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+          </label>
+          {error && (
+            <p role="alert" className="form-error">
+              {error}
+            </p>
+          )}
+          <button className="button button-primary button-wide" type="submit" disabled={busy}>
+            {busy ? 'Signing in…' : 'Sign in'}
+          </button>
         </form>
         <details className="demo-accounts">
           <summary>Seeded demo accounts</summary>
-          <p>All accounts use the seeded password <code>opsdesk-demo</code>.</p>
-          <ul>{accounts.map((account) => <li key={account.email}><button type="button" onClick={() => { setEmail(account.email); setPassword('opsdesk-demo'); }}>{account.label}</button></li>)}</ul>
+          <p>
+            All accounts use the seeded password <code>opsdesk-demo</code>.
+          </p>
+          <ul>
+            {accounts.map((account) => (
+              <li key={account.email}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail(account.email);
+                    setPassword('opsdesk-demo');
+                  }}
+                >
+                  {account.label}
+                </button>
+              </li>
+            ))}
+          </ul>
         </details>
       </section>
       <aside className="login-aside" aria-label="OpsDesk capabilities">
-        <div className="aside-orbit orbit-one" /><div className="aside-orbit orbit-two" />
+        <div className="aside-orbit orbit-one" />
+        <div className="aside-orbit orbit-two" />
         <p className="aside-label">OPS DESK / LIVE WORKSPACE</p>
         <div className="aside-card">
-          <div className="aside-card-top"><span className="status status-in_progress">In progress</span><span className="priority priority-urgent">Urgent</span></div>
+          <div className="aside-card-top">
+            <span className="status status-in_progress">In progress</span>
+            <span className="priority priority-urgent">Urgent</span>
+          </div>
           <h2>Payment settlement mismatch</h2>
           <p>Assigned to Casey Patel · Payments</p>
-          <div className="aside-progress"><span /></div>
-          <div className="aside-event"><span className="timeline-dot" /><span>Ownership updated</span><time>10:42 AM</time></div>
+          <div className="aside-progress">
+            <span />
+          </div>
+          <div className="aside-event">
+            <span className="timeline-dot" />
+            <span>Ownership updated</span>
+            <time>10:42 AM</time>
+          </div>
         </div>
-        <p className="aside-caption">Clear handoffs. A shared history. Every next step accounted for.</p>
+        <p className="aside-caption">
+          Clear handoffs. A shared history. Every next step accounted for.
+        </p>
       </aside>
     </main>
   );

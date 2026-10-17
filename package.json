@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "packageManager": "pnpm@10.24.0",
-  "engines": { "node": ">=20.11" },
+  "engines": {
+    "node": ">=20.19"
+  },
   "scripts": {
     "dev": "concurrently -k -n api,web,worker -c blue,green,yellow \"pnpm --filter @opsdesk/api dev\" \"pnpm --filter @opsdesk/web dev\" \"pnpm --filter @opsdesk/api worker\"",
     "dev:api": "pnpm --filter @opsdesk/api dev",
@@ -14,13 +16,21 @@
     "db:seed": "pnpm --filter @opsdesk/api db:seed",
     "test": "pnpm --filter @opsdesk/api test && pnpm --filter @opsdesk/web test",
     "build": "pnpm --filter @opsdesk/api build && pnpm --filter @opsdesk/web build",
-    "lint": "pnpm --filter @opsdesk/api lint && pnpm --filter @opsdesk/web lint"
+    "lint": "pnpm --filter @opsdesk/api lint && pnpm --filter @opsdesk/web lint",
+    "format": "prettier --write \"apps/**/*.{ts,tsx,json,css,html}\" \"packages/**/*.ts\" \"*.{md,json,yml,yaml}\"",
+    "format:check": "prettier --check \"apps/**/*.{ts,tsx,json,css,html}\" \"packages/**/*.ts\" \"*.{md,json,yml,yaml}\""
   },
   "devDependencies": {
     "concurrently": "^9.2.1",
+    "prettier": "^3.6.2",
     "typescript": "^5.9.3"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["@prisma/client", "@prisma/engines", "esbuild", "prisma"]
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "esbuild",
+      "prisma"
+    ]
   }
 }

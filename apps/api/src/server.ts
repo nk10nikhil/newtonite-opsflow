@@ -22,18 +22,25 @@ export function buildApp(options: { db?: PrismaClient; config?: Partial<AppConfi
   const db = options.db ?? prisma;
   const config: AppConfig = {
     webOrigin: options.config?.webOrigin ?? process.env.WEB_ORIGIN ?? 'http://localhost:5173',
-    sessionSecret: options.config?.sessionSecret ?? process.env.SESSION_SECRET ?? 'development-session-secret-at-least-32-chars',
+    sessionSecret:
+      options.config?.sessionSecret ??
+      process.env.SESSION_SECRET ??
+      'development-session-secret-at-least-32-chars',
     sessionTtlHours: options.config?.sessionTtlHours ?? Number(process.env.SESSION_TTL_HOURS ?? 12),
   };
-  if (config.sessionSecret.length < 32) throw new Error('SESSION_SECRET must contain at least 32 characters');
-  if (!Number.isFinite(config.sessionTtlHours) || config.sessionTtlHours < 1) throw new Error('SESSION_TTL_HOURS must be a positive number');
+  if (config.sessionSecret.length < 32)
+    throw new Error('SESSION_SECRET must contain at least 32 characters');
+  if (!Number.isFinite(config.sessionTtlHours) || config.sessionTtlHours < 1)
+    throw new Error('SESSION_TTL_HOURS must be a positive number');
 
   const app = Fastify({ logger: process.env.NODE_ENV === 'development' });
   app.decorateRequest('user', null);
   app.register(cookie);
   app.register(cors, { origin: config.webOrigin, credentials: true });
   app.setErrorHandler(errorHandler);
-  app.setNotFoundHandler((_request, reply) => reply.status(404).send({ error: { code: 'NOT_FOUND', message: 'Route not found' } }));
+  app.setNotFoundHandler((_request, reply) =>
+    reply.status(404).send({ error: { code: 'NOT_FOUND', message: 'Route not found' } }),
+  );
   app.addHook('preHandler', async (request) => {
     const path = request.url.split('?')[0];
     if (!path?.startsWith('/api/')) return;
@@ -41,7 +48,10 @@ export function buildApp(options: { db?: PrismaClient; config?: Partial<AppConfi
     await authenticateRequest(request, db, config.sessionSecret);
   });
   app.get('/health', async () => ({ ok: true }));
-  registerAuth(app, db, { sessionSecret: config.sessionSecret, sessionTtlHours: config.sessionTtlHours });
+  registerAuth(app, db, {
+    sessionSecret: config.sessionSecret,
+    sessionTtlHours: config.sessionTtlHours,
+  });
   registerTeamRoutes(app, db);
   registerWorkItemRoutes(app, db);
   return app;

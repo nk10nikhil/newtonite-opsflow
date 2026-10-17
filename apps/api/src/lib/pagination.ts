@@ -9,8 +9,16 @@ export function encodeCursor(point: CursorPoint): string {
 export function decodeCursor(cursor: string | undefined): CursorPoint | undefined {
   if (!cursor) return undefined;
   try {
-    const point = JSON.parse(Buffer.from(cursor, 'base64url').toString('utf8')) as Partial<CursorPoint>;
-    if (!point.snapshot || !point.at || !point.id || Number.isNaN(Date.parse(point.snapshot)) || Number.isNaN(Date.parse(point.at))) {
+    const point = JSON.parse(
+      Buffer.from(cursor, 'base64url').toString('utf8'),
+    ) as Partial<CursorPoint>;
+    if (
+      !point.snapshot ||
+      !point.at ||
+      !point.id ||
+      Number.isNaN(Date.parse(point.snapshot)) ||
+      Number.isNaN(Date.parse(point.at))
+    ) {
       throw new Error('Invalid cursor');
     }
     return point as CursorPoint;

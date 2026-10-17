@@ -15,7 +15,7 @@ flowchart LR
 
 ## Prerequisites
 
-- Node.js 20.11 or newer
+- Node.js 20.19 or newer
 - pnpm 10 (or Corepack enabled)
 - Docker with Docker Compose
 
@@ -47,16 +47,16 @@ Set `TEST_DATABASE_URL` in `.env` to a disposable PostgreSQL database. The examp
 
 Every seeded account uses the password set by `SEED_PASSWORD` (default `opsdesk-demo`).
 
-| Email | Team roles |
-| --- | --- |
-| `alex@opsdesk.local` | Operations admin, Payments member |
-| `blair@opsdesk.local` | Payments admin, Trust & Compliance viewer |
-| `casey@opsdesk.local` | Operations member |
-| `devon@opsdesk.local` | Payments member, Operations viewer |
-| `emery@opsdesk.local` | Trust & Compliance member, Payments viewer |
-| `frankie@opsdesk.local` | Trust & Compliance member |
-| `gray@opsdesk.local` | Operations viewer, Payments viewer |
-| `harper@opsdesk.local` | Operations member, Trust & Compliance admin |
+| Email                   | Team roles                                  |
+| ----------------------- | ------------------------------------------- |
+| `alex@opsdesk.local`    | Operations admin, Payments member           |
+| `blair@opsdesk.local`   | Payments admin, Trust & Compliance viewer   |
+| `casey@opsdesk.local`   | Operations member                           |
+| `devon@opsdesk.local`   | Payments member, Operations viewer          |
+| `emery@opsdesk.local`   | Trust & Compliance member, Payments viewer  |
+| `frankie@opsdesk.local` | Trust & Compliance member                   |
+| `gray@opsdesk.local`    | Operations viewer, Payments viewer          |
+| `harper@opsdesk.local`  | Operations member, Trust & Compliance admin |
 
 ## 60-second concurrent-claim demo
 
@@ -87,4 +87,3 @@ Useful database commands:
 
 - [Engineering decisions](ENGINEERING_DECISIONS.md) describes the main trade-offs.
 - [Known limitations](KNOWN_LIMITATIONS.md) lists intentionally deferred work.
-

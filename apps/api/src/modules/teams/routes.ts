@@ -20,7 +20,10 @@ export function registerTeamRoutes(app: FastifyInstance, db: PrismaClient) {
       where: { userId_teamId: { userId: user.id, teamId: request.params.id } },
     });
     if (!membership) {
-      const team = await db.team.findUnique({ where: { id: request.params.id }, select: { id: true } });
+      const team = await db.team.findUnique({
+        where: { id: request.params.id },
+        select: { id: true },
+      });
       if (!team) throw new AppError(404, 'NOT_FOUND', 'Team not found');
       throw new AppError(403, 'FORBIDDEN', 'You are not a member of this team');
     }

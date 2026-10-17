@@ -11,13 +11,23 @@ export const persistNotification: OutboxHandler = async (tx, event) => {
   await tx.notification.upsert({
     where: { outboxEventId: event.id },
     update: {},
-    create: { outboxEventId: event.id, type: event.type, payload: event.payload as Prisma.InputJsonValue },
+    create: {
+      outboxEventId: event.id,
+      type: event.type,
+      payload: event.payload as Prisma.InputJsonValue,
+    },
   });
 };
 
 export async function processNextOutboxEvent(
   db: PrismaClient,
-  options: { handler?: OutboxHandler; now?: () => Date; maxAttempts?: number; leaseMs?: number; eventType?: string } = {},
+  options: {
+    handler?: OutboxHandler;
+    now?: () => Date;
+    maxAttempts?: number;
+    leaseMs?: number;
+    eventType?: string;
+  } = {},
 ): Promise<boolean> {
   const now = options.now ?? (() => new Date());
   const maxAttempts = options.maxAttempts ?? Number(process.env.OUTBOX_MAX_ATTEMPTS ?? 5);
@@ -59,7 +69,7 @@ export async function processNextOutboxEvent(
   } catch (error) {
     const attempts = claimed.attempts;
     const failed = attempts >= maxAttempts;
-    const delayMs = Math.min(60 * 60_000, 1_000 * (2 ** Math.max(0, attempts - 1)));
+    const delayMs = Math.min(60 * 60_000, 1_000 * 2 ** Math.max(0, attempts - 1));
     const message = error instanceof Error ? error.message.slice(0, 1000) : 'Unknown handler error';
     await db.outboxEvent.update({
       where: { id: claimed.id },
@@ -70,7 +80,9 @@ export async function processNextOutboxEvent(
         lastError: message,
       },
     });
-    console.error(JSON.stringify({ event: 'outbox.failed', id: claimed.id, attempts, failed, error: message }));
+    console.error(
+      JSON.stringify({ event: 'outbox.failed', id: claimed.id, attempts, failed, error: message }),
+    );
   }
   return true;
 }

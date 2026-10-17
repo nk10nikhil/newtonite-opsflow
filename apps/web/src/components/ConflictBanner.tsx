@@ -10,7 +10,9 @@ export function ConflictBanner({ message, onLoadLatest }: Props) {
         <strong>Someone else changed this item.</strong>
         <p>{message}</p>
       </div>
-      <button className="button button-dark" type="button" onClick={onLoadLatest}>Load latest</button>
+      <button className="button button-dark" type="button" onClick={onLoadLatest}>
+        Load latest
+      </button>
     </div>
   );
 }

@@ -13,27 +13,77 @@ const teams = [
 ];
 
 const people = [
-  { id: 'user-alex', name: 'Alex Morgan', email: 'alex@opsdesk.local', memberships: { operations: 'admin', payments: 'member' } },
-  { id: 'user-blair', name: 'Blair Chen', email: 'blair@opsdesk.local', memberships: { payments: 'admin', 'trust-compliance': 'viewer' } },
-  { id: 'user-casey', name: 'Casey Patel', email: 'casey@opsdesk.local', memberships: { operations: 'member' } },
-  { id: 'user-devon', name: 'Devon Kim', email: 'devon@opsdesk.local', memberships: { payments: 'member', operations: 'viewer' } },
-  { id: 'user-emery', name: 'Emery Singh', email: 'emery@opsdesk.local', memberships: { 'trust-compliance': 'member', payments: 'viewer' } },
-  { id: 'user-frankie', name: 'Frankie Rivera', email: 'frankie@opsdesk.local', memberships: { 'trust-compliance': 'member' } },
-  { id: 'user-gray', name: 'Gray Johnson', email: 'gray@opsdesk.local', memberships: { operations: 'viewer', payments: 'viewer' } },
-  { id: 'user-harper', name: 'Harper Brooks', email: 'harper@opsdesk.local', memberships: { operations: 'member', 'trust-compliance': 'admin' } },
+  {
+    id: 'user-alex',
+    name: 'Alex Morgan',
+    email: 'alex@opsdesk.local',
+    memberships: { operations: 'admin', payments: 'member' },
+  },
+  {
+    id: 'user-blair',
+    name: 'Blair Chen',
+    email: 'blair@opsdesk.local',
+    memberships: { payments: 'admin', 'trust-compliance': 'viewer' },
+  },
+  {
+    id: 'user-casey',
+    name: 'Casey Patel',
+    email: 'casey@opsdesk.local',
+    memberships: { operations: 'member' },
+  },
+  {
+    id: 'user-devon',
+    name: 'Devon Kim',
+    email: 'devon@opsdesk.local',
+    memberships: { payments: 'member', operations: 'viewer' },
+  },
+  {
+    id: 'user-emery',
+    name: 'Emery Singh',
+    email: 'emery@opsdesk.local',
+    memberships: { 'trust-compliance': 'member', payments: 'viewer' },
+  },
+  {
+    id: 'user-frankie',
+    name: 'Frankie Rivera',
+    email: 'frankie@opsdesk.local',
+    memberships: { 'trust-compliance': 'member' },
+  },
+  {
+    id: 'user-gray',
+    name: 'Gray Johnson',
+    email: 'gray@opsdesk.local',
+    memberships: { operations: 'viewer', payments: 'viewer' },
+  },
+  {
+    id: 'user-harper',
+    name: 'Harper Brooks',
+    email: 'harper@opsdesk.local',
+    memberships: { operations: 'member', 'trust-compliance': 'admin' },
+  },
 ] as const;
 
 const workTitles = [
-  'Customer cannot complete account verification', 'Investigate duplicate settlement batch',
-  'Review access request for reporting exports', 'Follow up on delayed card payment',
-  'Confirm vendor invoice matches purchase order', 'Resolve intermittent checkout failures',
-  'Review customer data correction request', 'Investigate elevated refund rate',
-  'Approve updated compliance evidence', 'Restore missing transaction receipt',
-  'Check webhook delivery backlog', 'Verify account closure request',
-  'Review payment processor dispute', 'Investigate duplicate customer profile',
-  'Confirm operational handoff for weekend coverage', 'Update incident response notes',
-  'Reconcile unmatched bank transfer', 'Review high-risk account alert',
-  'Approve temporary service access', 'Investigate failed scheduled payout',
+  'Customer cannot complete account verification',
+  'Investigate duplicate settlement batch',
+  'Review access request for reporting exports',
+  'Follow up on delayed card payment',
+  'Confirm vendor invoice matches purchase order',
+  'Resolve intermittent checkout failures',
+  'Review customer data correction request',
+  'Investigate elevated refund rate',
+  'Approve updated compliance evidence',
+  'Restore missing transaction receipt',
+  'Check webhook delivery backlog',
+  'Verify account closure request',
+  'Review payment processor dispute',
+  'Investigate duplicate customer profile',
+  'Confirm operational handoff for weekend coverage',
+  'Update incident response notes',
+  'Reconcile unmatched bank transfer',
+  'Review high-risk account alert',
+  'Approve temporary service access',
+  'Investigate failed scheduled payout',
 ];
 const statuses: WorkItemStatus[] = ['open', 'in_progress', 'blocked', 'resolved', 'closed'];
 const priorities: WorkItemPriority[] = ['low', 'normal', 'high', 'urgent'];
@@ -41,7 +91,11 @@ const priorities: WorkItemPriority[] = ['low', 'normal', 'high', 'urgent'];
 async function main() {
   const passwordHash = await hashPassword(process.env.SEED_PASSWORD ?? 'opsdesk-demo');
   for (const team of teams) {
-    await prisma.team.upsert({ where: { slug: team.slug }, update: { name: team.name }, create: team });
+    await prisma.team.upsert({
+      where: { slug: team.slug },
+      update: { name: team.name },
+      create: team,
+    });
   }
 
   for (const person of people) {
@@ -60,7 +114,7 @@ async function main() {
     }
   }
 
-  const membersByTeam = new Map<string, typeof people[number][]>();
+  const membersByTeam = new Map<string, (typeof people)[number][]>();
   for (const person of people) {
     for (const slug of Object.keys(person.memberships)) {
       const bucket = membersByTeam.get(slug) ?? [];
@@ -82,21 +136,19 @@ async function main() {
     const title = `${workTitles[index % workTitles.length]} #${ordinal}`;
     const item = await prisma.workItem.upsert({
       where: { id },
-      update: {
-        teamId: team.id,
-        title,
-        description: `Investigate and coordinate the next action for request ${ordinal}. Add the findings and handoff details here.`,
-        type: ['customer_issue', 'payment_investigation', 'approval', 'incident', 'compliance_request'][index % 5]!,
-        status,
-        priority,
-        assigneeId: assignee?.id ?? null,
-      },
+      update: {},
       create: {
         id,
         teamId: team.id,
         title,
         description: `Investigate and coordinate the next action for request ${ordinal}. Add the findings and handoff details here.`,
-        type: ['customer_issue', 'payment_investigation', 'approval', 'incident', 'compliance_request'][index % 5]!,
+        type: [
+          'customer_issue',
+          'payment_investigation',
+          'approval',
+          'incident',
+          'compliance_request',
+        ][index % 5]!,
         status,
         priority,
         assigneeId: assignee?.id ?? null,
@@ -107,7 +159,7 @@ async function main() {
     });
 
     const createdEventId = `seed-event-${String(ordinal).padStart(3, '0')}-created`;
-    if (!await prisma.workItemEvent.findUnique({ where: { id: createdEventId } })) {
+    if (!(await prisma.workItemEvent.findUnique({ where: { id: createdEventId } }))) {
       await prisma.workItemEvent.create({
         data: {
           id: createdEventId,
@@ -122,7 +174,7 @@ async function main() {
 
     if (status !== 'open') {
       const statusEventId = `seed-event-${String(ordinal).padStart(3, '0')}-status`;
-      if (!await prisma.workItemEvent.findUnique({ where: { id: statusEventId } })) {
+      if (!(await prisma.workItemEvent.findUnique({ where: { id: statusEventId } }))) {
         await prisma.workItemEvent.create({
           data: {
             id: statusEventId,
@@ -138,7 +190,7 @@ async function main() {
 
     if (index % 5 === 0) {
       const commentId = `seed-comment-${String(ordinal).padStart(3, '0')}`;
-      if (!await prisma.workItemComment.findUnique({ where: { id: commentId } })) {
+      if (!(await prisma.workItemComment.findUnique({ where: { id: commentId } }))) {
         await prisma.workItemComment.create({
           data: {
             id: commentId,
@@ -156,9 +208,11 @@ async function main() {
   console.log(`Demo password: ${process.env.SEED_PASSWORD ?? 'opsdesk-demo'}`);
 }
 
-main().catch((error: unknown) => {
-  console.error(error);
-  process.exitCode = 1;
-}).finally(async () => {
-  await prisma.$disconnect();
-});
+main()
+  .catch((error: unknown) => {
+    console.error(error);
+    process.exitCode = 1;
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

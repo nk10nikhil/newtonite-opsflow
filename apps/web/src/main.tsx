@@ -16,12 +16,22 @@ function App() {
     let active = true;
     const onPopState = () => setRoute(`${window.location.pathname}${window.location.search}`);
     window.addEventListener('popstate', onPopState);
-    fetchMe().then((user) => { if (active) setMe(user); }).catch((cause: unknown) => {
-      if (active && !(cause instanceof ApiRequestError && cause.status === 401)) {
-        setSessionError(cause instanceof Error ? cause.message : 'Could not check your session.');
-      }
-    }).finally(() => { if (active) setLoading(false); });
-    return () => { active = false; window.removeEventListener('popstate', onPopState); };
+    fetchMe()
+      .then((user) => {
+        if (active) setMe(user);
+      })
+      .catch((cause: unknown) => {
+        if (active && !(cause instanceof ApiRequestError && cause.status === 401)) {
+          setSessionError(cause instanceof Error ? cause.message : 'Could not check your session.');
+        }
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+      window.removeEventListener('popstate', onPopState);
+    };
   }, []);
 
   function navigate(path: string, replace = false) {
@@ -38,19 +48,56 @@ function App() {
   }
 
   async function signOut() {
-    try { await logout(); } finally {
+    try {
+      await logout();
+    } finally {
       setMe(null);
       navigate('/login');
     }
   }
 
-  if (loading) return <div className="center-panel" role="status"><span className="spinner" />Loading OpsDesk…</div>;
-  if (!me) return <><Login onLogin={signIn} />{sessionError && <p className="session-error" role="alert">{sessionError}</p>}</>;
+  if (loading)
+    return (
+      <div className="center-panel" role="status">
+        <span className="spinner" />
+        Loading OpsDesk…
+      </div>
+    );
+  if (!me)
+    return (
+      <>
+        <Login onLogin={signIn} />
+        {sessionError && (
+          <p className="session-error" role="alert">
+            {sessionError}
+          </p>
+        )}
+      </>
+    );
 
   const pathname = route.split('?')[0] ?? '/';
   const match = pathname.match(/^\/work-items\/([^/]+)$/);
-  if (match) return <WorkItemDetail key={match[1]} id={decodeURIComponent(match[1]!)} me={me} onBack={() => navigate('/')} onLogout={signOut} />;
-  return <Dashboard me={me} onOpenItem={(id) => navigate(`/work-items/${encodeURIComponent(id)}`)} onLogout={signOut} />;
+  if (match)
+    return (
+      <WorkItemDetail
+        key={match[1]}
+        id={decodeURIComponent(match[1]!)}
+        me={me}
+        onBack={() => navigate('/')}
+        onLogout={signOut}
+      />
+    );
+  return (
+    <Dashboard
+      me={me}
+      onOpenItem={(id) => navigate(`/work-items/${encodeURIComponent(id)}`)}
+      onLogout={signOut}
+    />
+  );
 }
 
-createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>);
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+);

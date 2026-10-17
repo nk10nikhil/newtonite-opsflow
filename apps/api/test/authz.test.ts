@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { canAssign, canClaim, canComment, canCreate, canEdit, canRead, canTransition } from '../src/authz/policies.js';
+import {
+  canAssign,
+  canClaim,
+  canComment,
+  canCreate,
+  canEdit,
+  canRead,
+  canTransition,
+} from '../src/authz/policies.js';
 
 describe('team role policies', () => {
   it('keeps viewers read-only', () => {
@@ -19,14 +27,26 @@ describe('team role policies', () => {
   });
 
   it('allows only the assignee or team admin to resolve an in-progress item', () => {
-    expect(canTransition({ role: 'member', userId: 'u1', assigneeId: 'u1' }, 'in_progress', 'resolved')).toBe(true);
-    expect(canTransition({ role: 'member', userId: 'u1', assigneeId: 'u2' }, 'in_progress', 'resolved')).toBe(false);
-    expect(canTransition({ role: 'viewer', userId: 'u1', assigneeId: 'u1' }, 'in_progress', 'resolved')).toBe(false);
-    expect(canTransition({ role: 'admin', userId: 'u1', assigneeId: 'u2' }, 'in_progress', 'resolved')).toBe(true);
+    expect(
+      canTransition({ role: 'member', userId: 'u1', assigneeId: 'u1' }, 'in_progress', 'resolved'),
+    ).toBe(true);
+    expect(
+      canTransition({ role: 'member', userId: 'u1', assigneeId: 'u2' }, 'in_progress', 'resolved'),
+    ).toBe(false);
+    expect(
+      canTransition({ role: 'viewer', userId: 'u1', assigneeId: 'u1' }, 'in_progress', 'resolved'),
+    ).toBe(false);
+    expect(
+      canTransition({ role: 'admin', userId: 'u1', assigneeId: 'u2' }, 'in_progress', 'resolved'),
+    ).toBe(true);
   });
 
   it('reserves reopening a closed item for team admins', () => {
-    expect(canTransition({ role: 'member', userId: 'u1', assigneeId: 'u1' }, 'closed', 'open')).toBe(false);
-    expect(canTransition({ role: 'admin', userId: 'u1', assigneeId: null }, 'closed', 'open')).toBe(true);
+    expect(
+      canTransition({ role: 'member', userId: 'u1', assigneeId: 'u1' }, 'closed', 'open'),
+    ).toBe(false);
+    expect(canTransition({ role: 'admin', userId: 'u1', assigneeId: null }, 'closed', 'open')).toBe(
+      true,
+    );
   });
 });

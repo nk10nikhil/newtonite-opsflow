@@ -1,6 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
-import { apiFetch, clearMutationKey, fetchTeamMembers, fetchTeams, fetchWorkItems, type Me, type TeamMember, type WorkItem, type WorkItemFilters } from '../api/client';
+import {
+  apiFetch,
+  clearMutationKey,
+  fetchTeamMembers,
+  fetchTeams,
+  fetchWorkItems,
+  type Me,
+  type TeamMember,
+  type WorkItem,
+  type WorkItemFilters,
+} from '../api/client';
 import { withIdempotency } from '../api/client';
 import { FilterBar } from '../components/FilterBar';
 import { WorkItemCard } from '../components/WorkItemCard';
@@ -20,7 +30,10 @@ function filtersFromParams(params: URLSearchParams, me: Me): WorkItemFilters {
   return {
     teamId: params.get('teamId') || undefined,
     status: (params.get('status') as WorkItemFilters['status']) || undefined,
-    priority: view === 'unassigned-urgent' ? 'urgent' : (params.get('priority') as WorkItemFilters['priority']) || undefined,
+    priority:
+      view === 'unassigned-urgent'
+        ? 'urgent'
+        : (params.get('priority') as WorkItemFilters['priority']) || undefined,
     assigneeId: view === 'my-work' ? me.id : params.get('assigneeId') || undefined,
     unassigned: view === 'unassigned-urgent' || params.get('unassigned') === 'true' || undefined,
     q: params.get('q') || undefined,
@@ -28,7 +41,15 @@ function filtersFromParams(params: URLSearchParams, me: Me): WorkItemFilters {
   };
 }
 
-export function Dashboard({ me, onOpenItem, onLogout }: { me: Me; onOpenItem: (id: string) => void; onLogout: () => void }) {
+export function Dashboard({
+  me,
+  onOpenItem,
+  onLogout,
+}: {
+  me: Me;
+  onOpenItem: (id: string) => void;
+  onLogout: () => void;
+}) {
   const [teams, setTeams] = useState<TeamOption[]>([]);
   const [assignees, setAssignees] = useState<TeamMember[]>([]);
   const [params, setParams] = useState(() => new URLSearchParams(window.location.search));
@@ -56,11 +77,17 @@ export function Dashboard({ me, onOpenItem, onLogout }: { me: Me; onOpenItem: (i
       history.replaceState(null, '', `${location.pathname}?${initial.toString()}`);
       setParams(initial);
     }
-    fetchTeams().then(({ teams: result }) => {
-      setTeams(result);
-      const firstWritable = result.find((team) => team.role === 'admin' || team.role === 'member');
-      if (firstWritable) setTeamId(firstWritable.id);
-    }).catch((cause: unknown) => setError(cause instanceof Error ? cause.message : 'Could not load teams.'));
+    fetchTeams()
+      .then(({ teams: result }) => {
+        setTeams(result);
+        const firstWritable = result.find(
+          (team) => team.role === 'admin' || team.role === 'member',
+        );
+        if (firstWritable) setTeamId(firstWritable.id);
+      })
+      .catch((cause: unknown) =>
+        setError(cause instanceof Error ? cause.message : 'Could not load teams.'),
+      );
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
 
@@ -71,9 +98,16 @@ export function Dashboard({ me, onOpenItem, onLogout }: { me: Me; onOpenItem: (i
       return;
     }
     let active = true;
-    fetchTeamMembers(selectedTeamId).then(({ members }) => { if (active) setAssignees(members); })
-      .catch(() => { if (active) setAssignees([]); });
-    return () => { active = false; };
+    fetchTeamMembers(selectedTeamId)
+      .then(({ members }) => {
+        if (active) setAssignees(members);
+      })
+      .catch(() => {
+        if (active) setAssignees([]);
+      });
+    return () => {
+      active = false;
+    };
   }, [selectedTeamId, me.id, me.name, me.email]);
 
   const filters = useMemo(() => filtersFromParams(params, me), [params, me]);
@@ -84,20 +118,36 @@ export function Dashboard({ me, onOpenItem, onLogout }: { me: Me; onOpenItem: (i
     setError('');
     setItems([]);
     setNextCursor(null);
-    fetchWorkItems(filters).then((result) => {
-      if (!current) return;
-      setItems(result.items);
-      setNextCursor(result.nextCursor);
-    }).catch((cause: unknown) => {
-      if (current) setError(cause instanceof Error ? cause.message : 'Could not load work items.');
-    }).finally(() => { if (current) setLoading(false); });
-    return () => { current = false; };
+    fetchWorkItems(filters)
+      .then((result) => {
+        if (!current) return;
+        setItems(result.items);
+        setNextCursor(result.nextCursor);
+      })
+      .catch((cause: unknown) => {
+        if (current)
+          setError(cause instanceof Error ? cause.message : 'Could not load work items.');
+      })
+      .finally(() => {
+        if (current) setLoading(false);
+      });
+    return () => {
+      current = false;
+    };
   }, [filterKey, reload]);
 
   function updateParams(mutator: (next: URLSearchParams) => void, markCustom = true) {
     const next = new URLSearchParams(params);
+    if (markCustom) {
+      const currentView = params.get('view');
+      if (currentView === 'unassigned-urgent') {
+        next.set('unassigned', 'true');
+        if (!next.has('priority')) next.set('priority', 'urgent');
+      }
+      if (currentView === 'my-work') next.set('assigneeId', me.id);
+      next.set('view', 'custom');
+    }
     mutator(next);
-    if (markCustom) next.set('view', 'custom');
     next.delete('cursor');
     const query = next.toString();
     history.replaceState(null, '', `${location.pathname}${query ? `?${query}` : ''}`);
@@ -150,7 +200,11 @@ export function Dashboard({ me, onOpenItem, onLogout }: { me: Me; onOpenItem: (i
       setCreateOpen(false);
       onOpenItem(result.item.id);
     } catch (cause) {
-      setCreateError(cause instanceof Error ? cause.message : 'Could not create this work item. Retry to reuse the same request key.');
+      setCreateError(
+        cause instanceof Error
+          ? cause.message
+          : 'Could not create this work item. Retry to reuse the same request key.',
+      );
     } finally {
       setCreating(false);
     }
@@ -170,12 +224,32 @@ export function Dashboard({ me, onOpenItem, onLogout }: { me: Me; onOpenItem: (i
   return (
     <div className="app-shell">
       <header className="topbar">
-        <a href="/" className="brand" onClick={(event) => { event.preventDefault(); history.replaceState(null, '', '/'); selectView('recently-updated'); }}>
-          <span className="brand-mark">O</span><span>OpsDesk</span>
+        <a
+          href="/"
+          className="brand"
+          onClick={(event) => {
+            event.preventDefault();
+            history.replaceState(null, '', '/');
+            selectView('recently-updated');
+          }}
+        >
+          <span className="brand-mark">O</span>
+          <span>OpsDesk</span>
         </a>
         <div className="topbar-right">
-          <span className="user-chip"><span className="avatar">{me.name.split(' ').map((part) => part[0]).slice(0, 2).join('')}</span>{me.name}</span>
-          <button className="button button-quiet" onClick={onLogout}>Sign out</button>
+          <span className="user-chip">
+            <span className="avatar">
+              {me.name
+                .split(' ')
+                .map((part) => part[0])
+                .slice(0, 2)
+                .join('')}
+            </span>
+            {me.name}
+          </span>
+          <button className="button button-quiet" onClick={onLogout}>
+            Sign out
+          </button>
         </div>
       </header>
       <main className="dashboard-layout">
@@ -184,8 +258,14 @@ export function Dashboard({ me, onOpenItem, onLogout }: { me: Me; onOpenItem: (i
           <h2>My queue</h2>
           <nav className="saved-views">
             {(['my-work', 'unassigned-urgent', 'recently-updated'] as const).map((value) => (
-              <button key={value} className={view === value ? 'saved-view active' : 'saved-view'} onClick={() => selectView(value)}>
-                <span className="view-icon">{value === 'my-work' ? '◉' : value === 'unassigned-urgent' ? '!' : '↻'}</span>
+              <button
+                key={value}
+                className={view === value ? 'saved-view active' : 'saved-view'}
+                onClick={() => selectView(value)}
+              >
+                <span className="view-icon">
+                  {value === 'my-work' ? '◉' : value === 'unassigned-urgent' ? '!' : '↻'}
+                </span>
                 {viewLabel[value]}
               </button>
             ))}
@@ -203,55 +283,183 @@ export function Dashboard({ me, onOpenItem, onLogout }: { me: Me; onOpenItem: (i
               <h1 id="dashboard-title">{viewLabel[view]}</h1>
               <p className="page-subtitle">Find the next action and keep every handoff visible.</p>
             </div>
-            {writableTeams.length > 0 && <button className="button button-primary" onClick={() => setCreateOpen(true)}>＋ New work item</button>}
+            {writableTeams.length > 0 && (
+              <button className="button button-primary" onClick={() => setCreateOpen(true)}>
+                ＋ New work item
+              </button>
+            )}
           </div>
 
           <FilterBar
             teams={teams}
             assignees={assignees}
             values={filterValues}
-            onChange={(key, value) => updateParams((next) => value ? next.set(key, value) : next.delete(key))}
+            onChange={(key, value) =>
+              updateParams((next) => (value ? next.set(key, value) : next.delete(key)))
+            }
             onAssigneeChange={selectAssignee}
-            onSearch={(value) => updateParams((next) => value ? next.set('q', value) : next.delete('q'))}
+            onSearch={(value) =>
+              updateParams((next) => (value ? next.set('q', value) : next.delete('q')))
+            }
           />
 
           <div className="results-heading">
-            <h2>Work items <span className="count-pill">{items.length}{nextCursor ? '+' : ''}</span></h2>
+            <h2>
+              Work items{' '}
+              <span className="count-pill">
+                {items.length}
+                {nextCursor ? '+' : ''}
+              </span>
+            </h2>
             <span className="muted">Sorted by latest update</span>
           </div>
-          {error && <div className="inline-error" role="alert"><span>{error}</span><button className="button button-quiet" onClick={() => setReload((value) => value + 1)}>Retry</button></div>}
+          {error && (
+            <div className="inline-error" role="alert">
+              <span>{error}</span>
+              <button
+                className="button button-quiet"
+                onClick={() => setReload((value) => value + 1)}
+              >
+                Retry
+              </button>
+            </div>
+          )}
           {loading ? (
-            <div className="loading-panel" role="status"><span className="spinner" />Loading work items…</div>
+            <div className="loading-panel" role="status">
+              <span className="spinner" />
+              Loading work items…
+            </div>
           ) : items.length === 0 ? (
             <div className="empty-state">
               <span className="empty-icon">⌕</span>
               <h3>No work items match this view</h3>
               <p>Try another filter or create a new item for your team.</p>
-              {writableTeams.length > 0 && <button className="button button-dark" onClick={() => setCreateOpen(true)}>Create work item</button>}
+              {writableTeams.length > 0 && (
+                <button className="button button-dark" onClick={() => setCreateOpen(true)}>
+                  Create work item
+                </button>
+              )}
             </div>
           ) : (
             <div className="work-list" aria-live="polite">
-              {items.map((item) => <WorkItemCard key={item.id} item={item} onOpen={onOpenItem} />)}
+              {items.map((item) => (
+                <WorkItemCard key={item.id} item={item} onOpen={onOpenItem} />
+              ))}
             </div>
           )}
-          {!loading && nextCursor && <div className="load-more-row"><button className="button button-secondary" onClick={loadMore} disabled={loadingMore}>{loadingMore ? 'Loading…' : 'Load more'}</button></div>}
+          {!loading && nextCursor && (
+            <div className="load-more-row">
+              <button className="button button-secondary" onClick={loadMore} disabled={loadingMore}>
+                {loadingMore ? 'Loading…' : 'Load more'}
+              </button>
+            </div>
+          )}
         </section>
       </main>
 
       {createOpen && (
-        <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setCreateOpen(false); }}>
+        <div
+          className="modal-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setCreateOpen(false);
+          }}
+        >
           <section className="modal" role="dialog" aria-modal="true" aria-labelledby="create-title">
-            <div className="modal-heading"><div><p className="eyebrow">NEW REQUEST</p><h2 id="create-title">Create work item</h2></div><button className="icon-button" aria-label="Close" onClick={() => setCreateOpen(false)}>×</button></div>
-            <form className="form-stack" onSubmit={createWorkItem}>
-              <label><span>Title</span><input required maxLength={240} value={title} onChange={(event) => setTitle(event.target.value)} autoFocus /></label>
-              <label><span>Why does this need attention?</span><textarea rows={4} maxLength={10_000} value={description} onChange={(event) => setDescription(event.target.value)} /></label>
-              <div className="form-row">
-                <label><span>Team</span><select required value={teamId} onChange={(event) => setTeamId(event.target.value)}>{writableTeams.map((team) => <option key={team.id} value={team.id}>{team.name}</option>)}</select></label>
-                <label><span>Type</span><select value={itemType} onChange={(event) => setItemType(event.target.value)}>{['customer_issue', 'incident', 'payment_investigation', 'compliance_request', 'approval', 'task'].map((type) => <option key={type} value={type}>{type.replaceAll('_', ' ')}</option>)}</select></label>
-                <label><span>Priority</span><select value={priority} onChange={(event) => setPriority(event.target.value)}>{['low', 'normal', 'high', 'urgent'].map((value) => <option key={value}>{value}</option>)}</select></label>
+            <div className="modal-heading">
+              <div>
+                <p className="eyebrow">NEW REQUEST</p>
+                <h2 id="create-title">Create work item</h2>
               </div>
-              {createError && <p className="form-error" role="alert">{createError}</p>}
-              <div className="modal-actions"><button type="button" className="button button-quiet" onClick={() => setCreateOpen(false)}>Cancel</button><button type="submit" className="button button-primary" disabled={creating || writableTeams.length === 0}>{creating ? 'Creating…' : 'Create item'}</button></div>
+              <button
+                className="icon-button"
+                aria-label="Close"
+                onClick={() => setCreateOpen(false)}
+              >
+                ×
+              </button>
+            </div>
+            <form className="form-stack" onSubmit={createWorkItem}>
+              <label>
+                <span>Title</span>
+                <input
+                  required
+                  maxLength={240}
+                  value={title}
+                  onChange={(event) => setTitle(event.target.value)}
+                  autoFocus
+                />
+              </label>
+              <label>
+                <span>Why does this need attention?</span>
+                <textarea
+                  rows={4}
+                  maxLength={10_000}
+                  value={description}
+                  onChange={(event) => setDescription(event.target.value)}
+                />
+              </label>
+              <div className="form-row">
+                <label>
+                  <span>Team</span>
+                  <select
+                    required
+                    value={teamId}
+                    onChange={(event) => setTeamId(event.target.value)}
+                  >
+                    {writableTeams.map((team) => (
+                      <option key={team.id} value={team.id}>
+                        {team.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  <span>Type</span>
+                  <select value={itemType} onChange={(event) => setItemType(event.target.value)}>
+                    {[
+                      'customer_issue',
+                      'incident',
+                      'payment_investigation',
+                      'compliance_request',
+                      'approval',
+                      'task',
+                    ].map((type) => (
+                      <option key={type} value={type}>
+                        {type.replaceAll('_', ' ')}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  <span>Priority</span>
+                  <select value={priority} onChange={(event) => setPriority(event.target.value)}>
+                    {['low', 'normal', 'high', 'urgent'].map((value) => (
+                      <option key={value}>{value}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              {createError && (
+                <p className="form-error" role="alert">
+                  {createError}
+                </p>
+              )}
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="button button-quiet"
+                  onClick={() => setCreateOpen(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="button button-primary"
+                  disabled={creating || writableTeams.length === 0}
+                >
+                  {creating ? 'Creating…' : 'Create item'}
+                </button>
+              </div>
             </form>
           </section>
         </div>
