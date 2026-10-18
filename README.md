@@ -128,7 +128,7 @@ Use the provider's exact URL and TLS parameters. Do not run tests or `db:seed` a
 
 ## Demo users
 
-For local development, seeded users use `SEED_PASSWORD` from `.env.example` (default `opsdesk-demo`). The login page displays the local demo-user list only in Vite development builds; production builds do not prefill credentials or show the shared demo password.
+For local development, seeded users use `SEED_PASSWORD` from `.env.example` (default `nk10nikhil`). The login page displays the local demo-user list only in Vite development builds; production builds do not prefill credentials or show the shared demo password.
 
 | Email                   | Team roles                                  |
 | ----------------------- | ------------------------------------------- |
@@ -247,4 +247,8 @@ Every resource route resolves membership for the item's team; the client does no
 - [Challenge checklist](docs/requirements-checklist.md)
 - [Architecture](docs/architecture.md)
 
-Live demo: **Not deployed by this repository session.**
+Live demo: **[OpsDesk](https://newtonite-opsflow.vercel.app/)**
+
+User: `alex@opsdesk.local` (from `Demo User table` above)
+
+Password: `nk10nikhil` (from `.env.example`)
