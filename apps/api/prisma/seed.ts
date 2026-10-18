@@ -89,8 +89,8 @@ const statuses: WorkItemStatus[] = ['open', 'in_progress', 'blocked', 'resolved'
 const priorities: WorkItemPriority[] = ['low', 'normal', 'high', 'urgent'];
 
 async function main() {
-  const seedPassword = process.env.SEED_PASSWORD ?? 'opsdesk-demo';
-  if (process.env.NODE_ENV === 'production' && seedPassword === 'opsdesk-demo') {
+  const seedPassword = process.env.SEED_PASSWORD ?? 'nk10nikhil';
+  if (process.env.NODE_ENV === 'production' && seedPassword === 'nk10nikhil') {
     throw new Error('Set a unique SEED_PASSWORD before seeding a production database.');
   }
   const passwordHash = await hashPassword(seedPassword);

@@ -9,9 +9,9 @@ describe('Login', () => {
     expect(screen.getByLabelText('Email')).toHaveValue('');
     expect(screen.getByLabelText('Password')).toHaveValue('');
     fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'casey@opsdesk.local' } });
-    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'opsdesk-demo' } });
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'nk10nikhil' } });
     fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
     expect(await screen.findByText('Seeded demo accounts')).toBeInTheDocument();
-    expect(onLogin).toHaveBeenCalledWith('casey@opsdesk.local', 'opsdesk-demo');
+    expect(onLogin).toHaveBeenCalledWith('casey@opsdesk.local', 'nk10nikhil');
   });
 });

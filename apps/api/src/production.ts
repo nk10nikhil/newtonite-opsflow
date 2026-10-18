@@ -22,13 +22,13 @@ function stop(signal: NodeJS.Signals = 'SIGTERM', code = 0) {
 
 for (const child of children) {
   child.on('error', (error) => {
-    console.error('OpsDesk process failed to start', error);
+    console.error('OpsFlow process failed to start', error);
     stop('SIGTERM', 1);
   });
   child.on('exit', (code, signal) => {
     if (!stopping) {
       console.error(
-        `OpsDesk process exited unexpectedly (${signal ?? code ?? 'unknown'}); stopping sibling.`,
+        `OpsFlow process exited unexpectedly (${signal ?? code ?? 'unknown'}); stopping sibling.`,
       );
       stop('SIGTERM', code && code !== 0 ? code : 1);
     }

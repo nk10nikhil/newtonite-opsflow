@@ -83,7 +83,7 @@ const port = Number(process.env.PORT ?? 3000);
 if (process.env.NODE_ENV !== 'test') {
   const app = buildApp();
   await app.listen({ port, host: '0.0.0.0' });
-  app.log.info(`OpsDesk API listening on http://localhost:${port}`);
+  app.log.info(`OpsFlow API listening on http://localhost:${port}`);
   const shutdown = async () => {
     await app.close();
     await prisma.$disconnect();

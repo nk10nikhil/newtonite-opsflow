@@ -105,7 +105,7 @@ Generate a production session secret locally with:
 node -e "console.log(require('node:crypto').randomBytes(48).toString('base64url'))"
 ```
 
-Production startup fails if `SESSION_SECRET` is missing, uses the checked-in placeholder, or is shorter than 32 characters. It also requires an HTTPS `WEB_ORIGIN`. The demo seed refuses the default `opsdesk-demo` password when `NODE_ENV=production`. Never use the local demo password on a public deployment.
+Production startup fails if `SESSION_SECRET` is missing, uses the checked-in placeholder, or is shorter than 32 characters. It also requires an HTTPS `WEB_ORIGIN`. The demo seed refuses the default `nk10nikhil` password when `NODE_ENV=production`. Never use the local demo password on a public deployment.
 
 ## Database commands
 

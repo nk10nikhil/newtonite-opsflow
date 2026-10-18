@@ -89,7 +89,7 @@ export async function processNextOutboxEvent(
 
 async function run() {
   const pollMs = Number(process.env.OUTBOX_POLL_MS ?? 1000);
-  console.log(`OpsDesk outbox worker polling every ${pollMs}ms`);
+  console.log(`OpsFlow outbox worker polling every ${pollMs}ms`);
   while (true) {
     const found = await processNextOutboxEvent(prisma);
     if (!found) await new Promise((resolve) => setTimeout(resolve, pollMs));

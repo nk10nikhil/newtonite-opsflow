@@ -86,7 +86,7 @@ export function Login({
           <details className="demo-accounts">
             <summary>Seeded demo accounts</summary>
             <p>
-              Local demo accounts use the development password <code>opsdesk-demo</code>.
+              Local demo accounts use the development password <code>nk10nikhil</code>.
             </p>
             <ul>
               {accounts.map((account) => (
@@ -95,7 +95,7 @@ export function Login({
                     type="button"
                     onClick={() => {
                       setEmail(account.email);
-                      setPassword('opsdesk-demo');
+                      setPassword('nk10nikhil');
                     }}
                   >
                     {account.label}
