@@ -90,8 +90,14 @@ const priorities: WorkItemPriority[] = ['low', 'normal', 'high', 'urgent'];
 
 async function main() {
   const seedPassword = process.env.SEED_PASSWORD ?? 'nk10nikhil';
-  if (process.env.NODE_ENV === 'production' && seedPassword === 'nk10nikhil') {
-    throw new Error('Set a unique SEED_PASSWORD before seeding a production database.');
+  const knownDemoPasswords = new Set(['nk10nikhil', 'opsdesk-demo']);
+  if (
+    process.env.NODE_ENV === 'production' &&
+    (seedPassword.length < 16 || knownDemoPasswords.has(seedPassword))
+  ) {
+    throw new Error(
+      'Set a unique SEED_PASSWORD of at least 16 characters before seeding a production database.',
+    );
   }
   const passwordHash = await hashPassword(seedPassword);
   for (const team of teams) {

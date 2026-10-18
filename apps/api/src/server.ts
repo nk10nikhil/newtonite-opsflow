@@ -47,7 +47,7 @@ export function buildApp(options: { db?: PrismaClient; config?: Partial<AppConfi
   if (!Number.isFinite(config.sessionTtlHours) || config.sessionTtlHours < 1)
     throw new Error('SESSION_TTL_HOURS must be a positive number');
 
-  const app = Fastify({ logger: process.env.NODE_ENV === 'development' });
+  const app = Fastify({ logger: process.env.NODE_ENV !== 'test' });
   app.decorateRequest('user', null);
   app.register(cookie);
   app.register(cors, { origin: config.webOrigin, credentials: true });

@@ -188,6 +188,25 @@ pgDescribe('work item API and PostgreSQL transactions', () => {
     expect(current.version).toBe(item.version);
   });
 
+  it('enqueues an outbox event when an item priority changes', async () => {
+    const item = await createItem({ status: 'in_progress', assigneeId: memberAId });
+    const response = await memberA.patch(`/api/work-items/${item.id}`).send({
+      expectedVersion: item.version,
+      priority: 'urgent',
+    });
+
+    expect(response.status).toBe(200);
+    const queued = await testDb.outboxEvent.findMany({
+      where: { type: 'work_item.priority_changed' },
+      select: { payload: true },
+    });
+    expect(queued.map(({ payload }) => payload)).toContainEqual({
+      workItemId: item.id,
+      from: 'normal',
+      to: 'urgent',
+    });
+  });
+
   it('replays idempotent create, comment, and claim responses without duplicates', async () => {
     const title = `Idempotent ${randomUUID()}`;
     const createBody = {

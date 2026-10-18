@@ -141,6 +141,13 @@ export async function patchWorkItemTx(
         : {}),
     },
   });
+  if (input.priority !== undefined && input.priority !== item.priority) {
+    await enqueueOutbox(tx, 'work_item.priority_changed', {
+      workItemId,
+      from: item.priority,
+      to: input.priority,
+    });
+  }
   return updated;
 }
 

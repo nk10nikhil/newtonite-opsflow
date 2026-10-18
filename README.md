@@ -53,7 +53,7 @@ vercel.json               Static web build output and API rewrite
 
 ## Prerequisites
 
-- Node.js 20.19 or newer (Node 22 recommended)
+- Node.js 20.19+ or 22.12+ (Node 22.12 or newer recommended)
 - pnpm 10; Corepack can install the version pinned in `package.json`
 - Docker Desktop with Docker Compose for local PostgreSQL and the database-backed tests
 
@@ -105,7 +105,7 @@ Generate a production session secret locally with:
 node -e "console.log(require('node:crypto').randomBytes(48).toString('base64url'))"
 ```
 
-Production startup fails if `SESSION_SECRET` is missing, uses the checked-in placeholder, or is shorter than 32 characters. It also requires an HTTPS `WEB_ORIGIN`. The demo seed refuses the default `nk10nikhil` password when `NODE_ENV=production`. Never use the local demo password on a public deployment.
+Production startup fails if `SESSION_SECRET` is missing, uses the checked-in placeholder, or is shorter than 32 characters. It also requires an HTTPS `WEB_ORIGIN`. Production seeding rejects the local/demo passwords and requires a unique `SEED_PASSWORD` of at least 16 characters. The published login below is only for the disposable demo database and must never be used with real operational data.
 
 ## Database commands
 
@@ -190,7 +190,16 @@ Vercel needs no database credentials: browser requests to `/api/*` are rewritten
 
 ### 4. Seed a review database (optional)
 
-For a disposable assessment/demo database, set `DATABASE_URL`, `NODE_ENV=production`, and a unique `SEED_PASSWORD` in a local shell, then run `pnpm --filter @opsdesk/api db:seed`. Share that password only with intended reviewers. Do not enable the seed command as an automatic deploy step or run it against real operational data.
+For a disposable assessment/demo database, set `DATABASE_URL`, `NODE_ENV=production`, and a unique `SEED_PASSWORD` of at least 16 characters in a local shell, then run `pnpm --filter @opsdesk/api db:seed`. Share that password only with intended reviewers. Do not enable the seed command as an automatic deploy step or run it against real operational data.
+
+### 60-second demo
+
+Use two separate browser profiles (for example, a normal window and a private window) so each has its own login session. The demo database contains synthetic data only. Both Alex and Casey belong to Operations and can claim an unassigned item.
+
+- **0:00–0:10:** Sign in as Alex in the first profile and Casey in the second.
+- **0:10–0:25:** In both profiles, open the same open, unassigned Operations work item. The **Unassigned urgent** view is a quick place to find one.
+- **0:25–0:40:** Click **Claim** in both profiles close together. One claim should succeed; the other should show the conflict and refresh the item.
+- **0:40–1:00:** Confirm the winner is the owner, the item is in progress, and the activity history records the claim.
 
 ### 5. Smoke-test the deployment
 
@@ -247,7 +256,7 @@ Every resource route resolves membership for the item's team; the client does no
 - [Challenge checklist](docs/requirements-checklist.md)
 - [Architecture](docs/architecture.md)
 
-Live demo: **[OpsFlow](https://newtonite-opsflow.vercel.app/)**
+Live demo (synthetic data only): **[OpsFlow](https://newtonite-opsflow.vercel.app/)**
 
 User: `alex@opsdesk.local` (from `Demo User table` above)
 
