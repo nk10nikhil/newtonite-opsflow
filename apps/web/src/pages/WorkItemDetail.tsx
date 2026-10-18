@@ -361,7 +361,7 @@ export function WorkItemDetail({
       <header className="topbar">
         <button className="brand brand-button" onClick={onBack}>
           <span className="brand-mark">O</span>
-          <span>OpsDesk</span>
+          <span>OpsFlow</span>
         </button>
         <div className="topbar-right">
           <span className="user-chip">

@@ -60,7 +60,7 @@ function App() {
     return (
       <div className="center-panel" role="status">
         <span className="spinner" />
-        Loading OpsDesk…
+        Loading OpsFlow…
       </div>
     );
   if (!me)

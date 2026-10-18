@@ -234,7 +234,7 @@ export function Dashboard({
           }}
         >
           <span className="brand-mark">O</span>
-          <span>OpsDesk</span>
+          <span>OpsFlow</span>
         </a>
         <div className="topbar-right">
           <span className="user-chip">

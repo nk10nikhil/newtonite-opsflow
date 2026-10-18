@@ -43,9 +43,9 @@ export function Login({
   return (
     <main className="login-page">
       <section className="login-panel">
-        <a className="brand login-brand" href="/" aria-label="OpsDesk home">
+        <a className="brand login-brand" href="/" aria-label="OpsFlow home">
           <span className="brand-mark">O</span>
-          <span>OpsDesk</span>
+          <span>OpsFlow</span>
         </a>
         <p className="eyebrow">INTERNAL OPERATIONS</p>
         <h1>Work with the full picture.</h1>
@@ -106,10 +106,10 @@ export function Login({
           </details>
         )}
       </section>
-      <aside className="login-aside" aria-label="OpsDesk capabilities">
+      <aside className="login-aside" aria-label="OpsFlow capabilities">
         <div className="aside-orbit orbit-one" />
         <div className="aside-orbit orbit-two" />
-        <p className="aside-label">OPS DESK / LIVE WORKSPACE</p>
+        <p className="aside-label">OPS FLOW / LIVE WORKSPACE</p>
         <div className="aside-card">
           <div className="aside-card-top">
             <span className="status status-in_progress">In progress</span>

@@ -1,6 +1,6 @@
-# OpsDesk
+# OpsFlow
 
-OpsDesk gives operations, payments, and compliance teams one place to record requests, assign ownership, track decisions, and agree on the next action. It uses a TypeScript React client, a Fastify API, and PostgreSQL. The API enforces team permissions and workflow rules; PostgreSQL transactions keep item changes, append-only history, idempotency responses, and outbox rows consistent.
+OpsFlow gives operations, payments, and compliance teams one place to record requests, assign ownership, track decisions, and agree on the next action. It uses a TypeScript React client, a Fastify API, and PostgreSQL. The API enforces team permissions and workflow rules; PostgreSQL transactions keep item changes, append-only history, idempotency responses, and outbox rows consistent.
 
 ## What works
 
@@ -247,7 +247,7 @@ Every resource route resolves membership for the item's team; the client does no
 - [Challenge checklist](docs/requirements-checklist.md)
 - [Architecture](docs/architecture.md)
 
-Live demo: **[OpsDesk](https://newtonite-opsflow.vercel.app/)**
+Live demo: **[OpsFlow](https://newtonite-opsflow.vercel.app/)**
 
 User: `alex@opsdesk.local` (from `Demo User table` above)
 
