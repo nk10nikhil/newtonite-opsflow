@@ -21,15 +21,29 @@ export type AppConfig = {
 export function buildApp(options: { db?: PrismaClient; config?: Partial<AppConfig> } = {}) {
   const db = options.db ?? prisma;
   const config: AppConfig = {
-    webOrigin: options.config?.webOrigin ?? process.env.WEB_ORIGIN ?? 'http://localhost:5173',
+    webOrigin:
+      options.config?.webOrigin ??
+      process.env.WEB_ORIGIN ??
+      (process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5173'),
     sessionSecret:
       options.config?.sessionSecret ??
       process.env.SESSION_SECRET ??
-      'development-session-secret-at-least-32-chars',
+      (process.env.NODE_ENV === 'production' ? '' : 'development-session-secret-at-least-32-chars'),
     sessionTtlHours: options.config?.sessionTtlHours ?? Number(process.env.SESSION_TTL_HOURS ?? 12),
   };
-  if (config.sessionSecret.length < 32)
-    throw new Error('SESSION_SECRET must contain at least 32 characters');
+  if (
+    config.sessionSecret.length < 32 ||
+    (process.env.NODE_ENV === 'production' &&
+      [
+        'replace-this-with-at-least-32-random-characters',
+        'development-session-secret-at-least-32-chars',
+      ].includes(config.sessionSecret))
+  )
+    throw new Error('SESSION_SECRET must be unique and contain at least 32 characters');
+  if (!config.webOrigin) throw new Error('WEB_ORIGIN must be set in production');
+  if (process.env.NODE_ENV === 'production' && new URL(config.webOrigin).protocol !== 'https:') {
+    throw new Error('WEB_ORIGIN must use HTTPS in production');
+  }
   if (!Number.isFinite(config.sessionTtlHours) || config.sessionTtlHours < 1)
     throw new Error('SESSION_TTL_HOURS must be a positive number');
 
@@ -48,6 +62,14 @@ export function buildApp(options: { db?: PrismaClient; config?: Partial<AppConfi
     await authenticateRequest(request, db, config.sessionSecret);
   });
   app.get('/health', async () => ({ ok: true }));
+  app.get('/health/ready', async (_request, reply) => {
+    try {
+      await db.$queryRaw`SELECT 1`;
+      return { ok: true };
+    } catch {
+      return reply.status(503).send({ ok: false });
+    }
+  });
   registerAuth(app, db, {
     sessionSecret: config.sessionSecret,
     sessionTtlHours: config.sessionTtlHours,

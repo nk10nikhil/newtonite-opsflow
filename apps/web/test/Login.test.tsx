@@ -6,6 +6,8 @@ describe('Login', () => {
   it('submits the selected seeded account and password', async () => {
     const onLogin = vi.fn().mockResolvedValue(undefined);
     render(<Login onLogin={onLogin} />);
+    expect(screen.getByLabelText('Email')).toHaveValue('');
+    expect(screen.getByLabelText('Password')).toHaveValue('');
     fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'casey@opsdesk.local' } });
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'opsdesk-demo' } });
     fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));

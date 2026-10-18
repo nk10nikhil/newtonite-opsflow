@@ -1,5 +1,7 @@
 node_modules/
-dist/
+**/node_modules/
+**/.vite/
+**/dist/
 coverage/
 pnpm-lock.yaml
 apps/api/prisma/migrations/

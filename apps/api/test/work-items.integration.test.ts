@@ -10,7 +10,8 @@ import { buildApp } from '../src/server.js';
 import { processNextOutboxEvent, type OutboxHandler } from '../src/outbox/worker.js';
 
 dotenv.config({ path: resolve(process.cwd(), '../../.env') });
-const testDatabaseUrl = process.env.TEST_DATABASE_URL || process.env.DATABASE_URL;
+// Never fall back to DATABASE_URL here: it may point at a live deployment.
+const testDatabaseUrl = process.env.TEST_DATABASE_URL;
 const enabled = Boolean(testDatabaseUrl);
 const testDb = new PrismaClient({
   datasources: {
@@ -211,6 +212,12 @@ pgDescribe('work item API and PostgreSQL transactions', () => {
     expect(replayCreate.headers['idempotent-replay']).toBe('true');
     const created = await testDb.workItem.findMany({ where: { title } });
     expect(created).toHaveLength(1);
+    const changedCreate = await memberA
+      .post('/api/work-items')
+      .set('Idempotency-Key', createKey)
+      .send({ ...createBody, title: `${title} changed` });
+    expect(changedCreate.status).toBe(409);
+    expect(changedCreate.body.error.code).toBe('IDEMPOTENCY_KEY_REUSED');
 
     const commentKey = `comment-${randomUUID()}`;
     const commentBody = { body: 'One durable comment' };
@@ -277,6 +284,22 @@ pgDescribe('work item API and PostgreSQL transactions', () => {
       .send({ expectedVersion: item.version, title: 'Cross team edit' });
     expect(read.status).toBe(403);
     expect(update.status).toBe(403);
+  });
+
+  it('prevents updates and deletes to append-only activity history', async () => {
+    const item = await createItem();
+    const event = await testDb.workItemEvent.create({
+      data: {
+        workItemId: item.id,
+        actorId: adminId,
+        type: 'test.append_only',
+        payload: { safe: true },
+      },
+    });
+    await expect(
+      testDb.workItemEvent.update({ where: { id: event.id }, data: { type: 'tampered' } }),
+    ).rejects.toThrow();
+    await expect(testDb.workItemEvent.delete({ where: { id: event.id } })).rejects.toThrow();
   });
 
   it('rejects an illegal closed-to-in-progress transition', async () => {

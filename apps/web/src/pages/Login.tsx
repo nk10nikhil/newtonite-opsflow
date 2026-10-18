@@ -18,8 +18,8 @@ export function Login({
 }: {
   onLogin: (email: string, password: string) => Promise<void>;
 }) {
-  const [email, setEmail] = useState('alex@opsdesk.local');
-  const [password, setPassword] = useState('opsdesk-demo');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -82,27 +82,29 @@ export function Login({
             {busy ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
-        <details className="demo-accounts">
-          <summary>Seeded demo accounts</summary>
-          <p>
-            All accounts use the seeded password <code>opsdesk-demo</code>.
-          </p>
-          <ul>
-            {accounts.map((account) => (
-              <li key={account.email}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEmail(account.email);
-                    setPassword('opsdesk-demo');
-                  }}
-                >
-                  {account.label}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </details>
+        {import.meta.env.DEV && (
+          <details className="demo-accounts">
+            <summary>Seeded demo accounts</summary>
+            <p>
+              Local demo accounts use the development password <code>opsdesk-demo</code>.
+            </p>
+            <ul>
+              {accounts.map((account) => (
+                <li key={account.email}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEmail(account.email);
+                      setPassword('opsdesk-demo');
+                    }}
+                  >
+                    {account.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </details>
+        )}
       </section>
       <aside className="login-aside" aria-label="OpsDesk capabilities">
         <div className="aside-orbit orbit-one" />

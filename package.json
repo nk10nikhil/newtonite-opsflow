@@ -11,14 +11,17 @@
     "dev:api": "pnpm --filter @opsdesk/api dev",
     "dev:web": "pnpm --filter @opsdesk/web dev",
     "worker": "pnpm --filter @opsdesk/api worker",
+    "start": "pnpm --filter @opsdesk/api start:combined",
     "db:generate": "pnpm --filter @opsdesk/api db:generate",
     "db:migrate": "pnpm --filter @opsdesk/api db:migrate",
     "db:seed": "pnpm --filter @opsdesk/api db:seed",
     "test": "pnpm --filter @opsdesk/api test && pnpm --filter @opsdesk/web test",
+    "test:unit": "pnpm --filter @opsdesk/api exec vitest run test/authz.test.ts test/workflow.test.ts test/server.test.ts && pnpm --filter @opsdesk/web test",
     "build": "pnpm --filter @opsdesk/api build && pnpm --filter @opsdesk/web build",
     "lint": "pnpm --filter @opsdesk/api lint && pnpm --filter @opsdesk/web lint",
-    "format": "prettier --write \"apps/**/*.{ts,tsx,json,css,html}\" \"packages/**/*.ts\" \"*.{md,json,yml,yaml}\"",
-    "format:check": "prettier --check \"apps/**/*.{ts,tsx,json,css,html}\" \"packages/**/*.ts\" \"*.{md,json,yml,yaml}\""
+    "typecheck": "pnpm lint",
+    "format": "prettier --write \"apps/**/*.{ts,tsx,json,css,html}\" \"packages/**/*.ts\" \"*.{md,json,yml,yaml}\" \"docs/**/*.md\" \".github/workflows/*.yml\"",
+    "format:check": "prettier --check \"apps/**/*.{ts,tsx,json,css,html}\" \"packages/**/*.ts\" \"*.{md,json,yml,yaml}\" \"docs/**/*.md\" \".github/workflows/*.yml\""
   },
   "devDependencies": {
     "concurrently": "^9.2.1",

@@ -89,7 +89,11 @@ const statuses: WorkItemStatus[] = ['open', 'in_progress', 'blocked', 'resolved'
 const priorities: WorkItemPriority[] = ['low', 'normal', 'high', 'urgent'];
 
 async function main() {
-  const passwordHash = await hashPassword(process.env.SEED_PASSWORD ?? 'opsdesk-demo');
+  const seedPassword = process.env.SEED_PASSWORD ?? 'opsdesk-demo';
+  if (process.env.NODE_ENV === 'production' && seedPassword === 'opsdesk-demo') {
+    throw new Error('Set a unique SEED_PASSWORD before seeding a production database.');
+  }
+  const passwordHash = await hashPassword(seedPassword);
   for (const team of teams) {
     await prisma.team.upsert({
       where: { slug: team.slug },
@@ -205,7 +209,9 @@ async function main() {
   }
 
   console.log(`Seeded ${teams.length} teams, ${people.length} users, and 150 work items.`);
-  console.log(`Demo password: ${process.env.SEED_PASSWORD ?? 'opsdesk-demo'}`);
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('Demo accounts use the development SEED_PASSWORD.');
+  }
 }
 
 main()
